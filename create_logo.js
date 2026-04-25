@@ -24,6 +24,7 @@ function drawLogo(size, radius, heartScale, fontSize1, fontSize2, outPath) {
   ctx.textAlign = 'center';
   ctx.fillText('NextGen', cx, size * 0.68);
   ctx.fillStyle = '#E91E63';
+  ctx.backgroundColor = '#02020a';
   ctx.font = fontSize2 + 'px Arial';
   ctx.fillText('DATING', cx, size * 0.82);
   fs.writeFileSync(outPath, canvas.toBuffer('image/png'));
