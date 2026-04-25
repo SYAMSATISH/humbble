@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "humbble",
-    "slug": "humbble",
+    "name": "NextGen Dating App",
+    "slug": "nextgen-dating-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,14 +10,14 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.humbble"
+      "bundleIdentifier": "com.nextgen.datingapp"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.humbble"
+      "package": "com.nextgen.datingapp"
     },
     "web": {
       "bundler": "metro",
