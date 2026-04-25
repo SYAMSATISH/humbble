@@ -1,145 +1,145 @@
-const SuggestedUsers = [
+import { auth, db } from '../constants/appwrite';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut
+} from 'firebase/auth';
+import {
+  doc, setDoc, getDoc, collection,
+  getDocs, updateDoc, arrayUnion
+} from 'firebase/firestore';
+
+// Sign Up
+export const signUp = async (email: string, password: string, name: string, age: number, gender: string) => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
+
+    // Firestore lo user save cheyyi
+    await setDoc(doc(db, 'users', uid), {
+      uid,
+      name,
+      age,
+      gender,
+      email,
+      bio: '',
+      intent: 'relationship',
+      photos: [],
+      liked: [],
+      matches: [],
+      createdAt: new Date(),
+    });
+
+    return { success: true, uid };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+};
+
+// Login
+export const login = async (email: string, password: string) => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    return { success: true, uid: userCredential.user.uid };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+};
+
+// Logout
+export const logout = async () => {
+  await signOut(auth);
+  
+};
+
+// All users fetch cheyyi (swipe cards ki)
+export const getAllUsers = async (currentUid: string) => {
+  const snapshot = await getDocs(collection(db, 'users'));
+  const users: any[] = [];
+  snapshot.forEach(docSnap => {
+    if (docSnap.id !== currentUid) {
+      users.push({ id: docSnap.id, ...docSnap.data() });
+    }
+  });
+  return users;
+};
+
+// Like cheyyi + Match check cheyyi
+export const likeUser = async (currentUid: string, likedUid: string) => {
+  // Current user liked array lo add cheyyi
+  await updateDoc(doc(db, 'users', currentUid), {
+    liked: arrayUnion(likedUid)
+  });
+
+  // Opposite user meeru kuda like chesaadha check cheyyi
+  const likedUserDoc = await getDoc(doc(db, 'users', likedUid));
+  const likedUserData = likedUserDoc.data();
+
+  if (likedUserData?.liked?.includes(currentUid)) {
+    // Match! Rendu peru matches lo add cheyyi
+    await updateDoc(doc(db, 'users', currentUid), {
+      matches: arrayUnion(likedUid)
+    });
+    await updateDoc(doc(db, 'users', likedUid), {
+      matches: arrayUnion(currentUid)
+    });
+    return { matched: true };
+  }
+
+  return { matched: false };
+};
+// User type export
+export type User = {
+  id: string;
+  name: string;
+  age: number;
+  bio?: string;
+  image?: string;
+  photo?: string;
+  gender?: string;
+  intent?: string;
+  liked?: string[];
+  matches?: string[];
+};
+
+// Firebase nundi users fetch cheyyi
+export const fetchUsersFromFirebase = async (): Promise<User[]> => {
+  const snapshot = await getDocs(collection(db, 'users'));
+  const users: User[] = [];
+  snapshot.forEach(docSnap => {
+    users.push({ id: docSnap.id, ...docSnap.data() } as User);
+  });
+  return users;
+};
+export const matchwithgoalData: User[] = [
   {
-    id: 1,
-    name: "A",
-    age: 22,
-    image:
-      "https://images.pexels.com/photos/1391498/pexels-photo-1391498.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    id: "1",
+    name: "Ananya",
+    age: 24,
+    image: "https://images.pexels.com/photos/1391498/pexels-photo-1391498.jpeg?auto=compress&cs=tinysrgb&w=400",
+    bio: "Travel lover",
+    gender: "female",
+    intent: "relationship",
   },
   {
-    id: 2,
-    name: "B",
+    id: "2",
+    name: "Meera",
+    age: 22,
+    image: "https://images.pexels.com/photos/1408978/pexels-photo-1408978.jpeg?auto=compress&cs=tinysrgb&w=400",
+    bio: "Coffee addict",
+    gender: "female",
+    intent: "relationship",
+  },
+];
+
+export const RECOMMENDATION_USER: User[] = [
+  {
+    id: "3",
+    name: "Kavya",
     age: 25,
-    image:
-      "https://images.pexels.com/photos/1408978/pexels-photo-1408978.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  },
-  {
-    id: 3,
-    name: "C",
-    age: 24,
-    image:
-      "https://images.pexels.com/photos/1642228/pexels-photo-1642228.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  },
-  {
-    id: 4,
-    name: "D",
-    age: 26,
-    image:
-      "https://images.pexels.com/photos/1375849/pexels-photo-1375849.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  },
-  {
-    id: 5,
-    name: "E",
-    age: 23,
-    image:
-      "https://images.pexels.com/photos/227288/pexels-photo-227288.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  },
-  {
-    id: 6,
-    name: "F",
-    age: 27,
-    image:
-      "https://images.pexels.com/photos/3153200/pexels-photo-3153200.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  },
-  {
-    id: 7,
-    name: "G",
-    age: 22,
-    image:
-      "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  },
-  {
-    id: 8,
-    name: "H",
-    age: 28,
-    image:
-      "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    image: "https://images.pexels.com/photos/1642228/pexels-photo-1642228.jpeg?auto=compress&cs=tinysrgb&w=400",
+    bio: "Designer",
+    gender: "female",
+    intent: "relationship",
   },
 ];
-const matchwithgoalData = [
-  {
-    id: 1,
-    name: "suhani",
-    age: 23,
-    image:
-      "https://plus.unsplash.com/premium_photo-1661729781158-8abc559a94c5?q=80&w=3174&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    bio: "A long-term relationship",
-  },
-  {
-    id: 2,
-    name: "sukanya",
-    age: 22,
-    image:
-      "https://images.unsplash.com/photo-1622782045716-a05bcc4f5ae8?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    bio: "A long-term relationship",
-  },
-  {
-    id: 3,
-    name: "pallabi",
-    age: 23,
-    image:
-      "https://images.unsplash.com/photo-1622049605334-72e1e4432346?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    bio: "A long-term relationship",
-  },
-  {
-    id: 4,
-    name: "manasi",
-    age: 23,
-    image:
-      "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?q=80&w=1727&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    bio: "A long-term relationship",
-  },
-  {
-    id: 5,
-    name: "ananya",
-    age: 24,
-    image:
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    bio: "Looking for something meaningful",
-  },
-];
-
-const RECOMMENDATION_USER = [
-  {
-    id: 6,
-    name: "suhani",
-    age: 23,
-    image:
-      "https://plus.unsplash.com/premium_photo-1682089810582-f7b200217b67?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    bio: "A long-term relationship",
-  },
-  {
-    id: 7,
-    name: "rahi",
-    age: 23,
-    image:
-      "https://plus.unsplash.com/premium_photo-1661634439983-f934c191b4fd?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    bio: "A long-term relationship",
-  },
-  {
-    id: 8,
-    name: "sonia",
-    age: 23,
-    image:
-      "https://plus.unsplash.com/premium_photo-1661729781158-8abc559a94c5?q=80&w=3174&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    bio: "A long-term relationship",
-  },
-  {
-    id: 9,
-    name: "priya",
-    age: 24,
-    image:
-      "https://images.unsplash.com/photo-1504973960431-7a37e4b3f2c4?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    bio: "Seeking a deep connection",
-  },
-  {
-    id: 10,
-    name: "tanisha",
-    age: 22,
-    image:
-      "https://images.unsplash.com/photo-1532073150508-0c1df022bdd1?q=80&w=3087&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    bio: "Looking for my perfect match",
-  },
-];
-
-export { SuggestedUsers, RECOMMENDATION_USER, matchwithgoalData };
